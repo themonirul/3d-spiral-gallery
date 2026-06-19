@@ -1,0 +1,6 @@
+{
+  "name": "3D Spiral Helix Gallery",
+  "description": "An interactive, custom-engineered 3D Cylindrical Helix Gallery featuring custom view-space shaders, kinetic physics, curator playlists, custom uploads, control HUD, and a real-time AI Curator Co-pilot.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
