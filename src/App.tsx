@@ -12,7 +12,8 @@ import {
   Minimize2,
   Calendar,
   Layers,
-  HelpCircle
+  HelpCircle,
+  Database
 } from "lucide-react";
 import { ARTWORKS_DATA, GALLERY_THEMES } from "./data/artworks";
 import { Artwork, HelixSettings } from "./types";
@@ -21,6 +22,7 @@ import ControlHUD from "./components/ControlHUD";
 import DetailOverlay from "./components/DetailOverlay";
 import AICuratorPanel from "./components/AICuratorPanel";
 import ArtworkUploader from "./components/ArtworkUploader";
+import FramerExporter from "./components/FramerExporter";
 
 export default function App() {
   const [artworks, setArtworks] = useState<Artwork[]>(ARTWORKS_DATA);
@@ -47,7 +49,7 @@ export default function App() {
 
   // UI interface visibility toggles
   const [isUiVisible, setIsUiVisible] = useState<boolean>(true);
-  const [activeLeftTab, setActiveLeftTab] = useState<"physics" | "uploader" | "info">("physics");
+  const [activeLeftTab, setActiveLeftTab] = useState<"physics" | "uploader" | "framer">("framer");
   const [activeRightTab, setActiveRightTab] = useState<"details" | "curator">("details");
 
   const [isPending, startTransition] = useTransition();
@@ -81,6 +83,29 @@ export default function App() {
     setArtworks((prev) => [newArt, ...prev]);
     setSelectedArtwork(newArt);
     setActiveThemeId("Uploads");
+  };
+
+  // Handle updating artwork fields in-place (Framer CMS Sandbox simulation)
+  const handleUpdateArtwork = (index: number, updatedFields: Partial<Artwork>) => {
+    setArtworks((prev) => {
+      const updated = [...prev];
+      const targetInFiltered = filteredArtworks[index];
+      if (targetInFiltered) {
+        const globalIndex = prev.findIndex((art) => art.id === targetInFiltered.id);
+        if (globalIndex !== -1) {
+          updated[globalIndex] = {
+            ...updated[globalIndex],
+            ...updatedFields,
+          };
+          
+          // Re-update selected artwork so detail overlay matches
+          if (selectedArtwork && selectedArtwork.id === targetInFiltered.id) {
+            setSelectedArtwork(updated[globalIndex]);
+          }
+        }
+      }
+      return updated;
+    });
   };
 
   // Smoothly trigger AI curator panel targeting
@@ -178,6 +203,15 @@ export default function App() {
               <Compass className="w-3.5 h-3.5" />
               <span>Curation</span>
             </button>
+            <button
+              onClick={() => setActiveLeftTab("framer")}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[10px] tracking-wider uppercase font-mono font-medium transition ${
+                activeLeftTab === "framer" ? "bg-white/10 text-white font-bold" : "text-neutral-400 hover:text-white"
+              }`}
+            >
+              <Database className="w-3.5 h-3.5" />
+              <span>Framer</span>
+            </button>
           </div>
 
           {/* Active section deck panels */}
@@ -200,6 +234,13 @@ export default function App() {
                   Drag, flick, or swipe inside the 3D grid space to spin the cylindrical helix. Hover pieces to expand, and click to inspect details or summon the AI co-pilot.
                 </div>
               </div>
+            )}
+            {activeLeftTab === "framer" && (
+              <FramerExporter
+                artworks={filteredArtworks}
+                onUpdateArtwork={handleUpdateArtwork}
+                activeThemeColor={activeTheme.accentColor}
+              />
             )}
           </div>
         </div>
